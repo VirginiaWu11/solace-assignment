@@ -2,6 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { Advocate } from "./types/advocate";
+import SolaceIcon from "./icons/SolaceIcon";
+import Button from "./components/Button";
+
+const tableHeaders = [
+  "First Name",
+  "Last Name",
+  "City",
+  "Degree",
+  "Specialties",
+  "Years of Experience",
+  "Phone Number",
+];
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
@@ -37,49 +49,57 @@ export default function Home() {
 
   const onClick = () => {
     console.log(advocates);
+    setSearchTerm("");
     setFilteredAdvocates(advocates);
   };
 
   return (
     <main style={{ margin: "24px" }}>
-      <h1>Solace Advocates</h1>
+      <SolaceIcon className="w-40 h-20" />
       <br />
+
+      <h1>Solace Advocates</h1>
       <br />
       <div>
         <p>Search</p>
         <p>
           Searching for: <span>{searchTerm}</span>
         </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
+        <div className="flex gap-2">
+          <input
+            className="rounded-md border border-black pl-2"
+            onChange={onChange}
+          />
+          <Button onClick={onClick}>Reset Search</Button>
+        </div>
       </div>
       <br />
       <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
+      <table className="min-w-full">
+        <thead className="border-b border-gray-300">
+          {tableHeaders.map((header, i) => (
+            <th className={`px-3 py-3.5 whitespace-nowrap `} key={i}>
+              {header}
+            </th>
+          ))}
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-gray-200">
           {filteredAdvocates.map((advocate) => {
             return (
               <tr key={advocate.id}>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s, i) => (
-                    <div key={i}>{s}</div>
-                  ))}
+                <td className="px-3 py-3.5">{advocate.firstName}</td>
+                <td className="px-3 py-3.5">{advocate.lastName}</td>
+                <td className="px-3 py-3.5">{advocate.city}</td>
+                <td className="px-3 py-3.5">{advocate.degree}</td>
+                <td className="px-3 py-3.5 ">
+                  <ul className="list-disc flex flex-col gap-2 pl-8">
+                    {advocate.specialties.map((s, i) => (
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
                 </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
+                <td className="px-3 py-3.5">{advocate.yearsOfExperience}</td>
+                <td className="px-3 py-3.5">{advocate.phoneNumber}</td>
               </tr>
             );
           })}
