@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Advocate } from "./types/advocate";
 import SolaceIcon from "./icons/SolaceIcon";
 import Button from "./components/Button";
+import LoadingSpinner from "./icons/LoadingSpinner";
 
 const tableHeaders = [
   "First Name",
@@ -19,21 +20,28 @@ export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
   const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse: { data: Advocate[] }) => {
+    async function fetchAdvocates() {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/advocates");
+        if (!res.ok) throw new Error(res.statusText);
+        const jsonResponse: { data: Advocate[] } = await res.json();
         setAdvocates(jsonResponse.data);
         setFilteredAdvocates(jsonResponse.data);
-      });
-    });
+      } catch (e) {
+        console.error(e);
+      }
+      setIsLoading(false);
+    }
+    fetchAdvocates();
   }, []);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
     setSearchTerm(searchTerm);
-    console.log("filtering advocates...");
     const filteredAdvocates = advocates.filter((advocate) => {
       return (
         advocate.firstName.toLowerCase().includes(searchTerm) ||
@@ -48,7 +56,6 @@ export default function Home() {
   };
 
   const onClick = () => {
-    console.log(advocates);
     setSearchTerm("");
     setFilteredAdvocates(advocates);
   };
@@ -71,6 +78,7 @@ export default function Home() {
             onChange={onChange}
           />
           <Button onClick={onClick}>Reset Search</Button>
+          {isLoading && <LoadingSpinner className="animate-spin h-8 w-8" />}
         </div>
       </div>
       <br />
@@ -83,6 +91,7 @@ export default function Home() {
             </th>
           ))}
         </thead>
+
         <tbody className="divide-y divide-gray-200">
           {filteredAdvocates.map((advocate) => {
             return (
