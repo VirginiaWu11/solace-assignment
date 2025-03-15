@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Advocate } from "./types/advocate";
 import SolaceIcon from "./icons/SolaceIcon";
 import Button from "./components/Button";
 import LoadingSpinner from "./icons/LoadingSpinner";
+import debounce from "lodash.debounce";
 
 const tableHeaders = [
   "First Name",
@@ -15,6 +16,32 @@ const tableHeaders = [
   "Years of Experience",
   "Phone Number",
 ];
+
+const search = debounce(
+  async (
+    searchTerm: string,
+    setFilteredAdvocates: Dispatch<SetStateAction<Advocate[]>>,
+    setIsLoading,
+    advocates
+  ) => {
+    if (!searchTerm) {
+      setFilteredAdvocates(advocates);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/advocates/search?q=${searchTerm}`);
+      if (!res.ok) throw new Error(res.statusText);
+      const jsonResponse: { data: Advocate[] } = await res.json();
+      setFilteredAdvocates(jsonResponse.data);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+  },
+  500
+);
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
@@ -42,17 +69,8 @@ export default function Home() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value;
     setSearchTerm(searchTerm);
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.toLowerCase().includes(searchTerm) ||
-        advocate.lastName.toLowerCase().includes(searchTerm) ||
-        advocate.city.toLowerCase().includes(searchTerm) ||
-        advocate.degree.toLowerCase().includes(searchTerm) ||
-        advocate.specialties.join(",").toLowerCase().includes(searchTerm) ||
-        advocate.yearsOfExperience.toString().includes(searchTerm)
-      );
-    });
-    setFilteredAdvocates(filteredAdvocates);
+
+    search(searchTerm, setFilteredAdvocates, setIsLoading, advocates);
   };
 
   const onClick = () => {
